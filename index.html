@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sprinto — испанский язык: подберите курс за минуту</title>
+  <meta name="description" content="Ответьте на 5 вопросов и узнайте, какой формат изучения испанского подойдёт именно вам.">
+  <meta name="theme-color" content="#FDECE0">
+
+  <!-- Верификация домена в Meta Business Manager: вставить сюда мета-тег, который выдаст Meta -->
+  <!-- <meta name="facebook-domain-verification" content="..."> -->
+
+  <!-- Open Graph: положить картинку 1200×630 в assets/og.jpg -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sprinto — испанский язык: подберите курс за минуту">
+  <meta property="og:description" content="Ответьте на 5 вопросов и узнайте, какой формат изучения испанского подойдёт именно вам.">
+  <meta property="og:image" content="https://start.sprinto.kz/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://start.sprinto.kz/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Favicon: заменить на маскота (assets/favicon.png) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23F08228' stroke='%23263650' stroke-width='4'/%3E%3Ctext x='32' y='43' font-family='Arial' font-weight='900' font-size='34' text-anchor='middle' fill='%23263650'%3ES%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Конфиг и аналитика: в <head>, чтобы PageView ушёл сразу -->
+  <script src="config.js"></script>
+  <script src="analytics.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main" id="skip-link">К содержимому</a>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="logo" href="./" aria-label="Sprinto">Sprinto</a>
+      <div class="lang" role="group" aria-label="Язык сайта" id="lang-switch">
+        <button type="button" data-action="lang" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" data-action="lang" data-lang="kz" aria-pressed="false">KZ</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section hero" id="hero"></section>
+    <section class="section" id="quiz" aria-labelledby="quiz-title"></section>
+    <section class="section" id="why"></section>
+    <section class="section" id="how"></section>
+    <section class="section" id="lineup"></section>
+    <section class="section" id="demo"></section>
+    <section class="section" id="reviews"></section>
+    <section class="section" id="faq"></section>
+    <section class="section final" id="final"></section>
+  </main>
+
+  <footer class="footer" id="footer"></footer>
+
+  <div class="sticky-cta" id="sticky" hidden>
+    <button type="button" class="btn btn-primary" data-action="goquiz" id="sticky-btn">Подобрать курс</button>
+  </div>
+
+  <noscript><p style="padding:24px;text-align:center">Для работы страницы нужен JavaScript.</p></noscript>
+  <script src="quiz-logic.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
