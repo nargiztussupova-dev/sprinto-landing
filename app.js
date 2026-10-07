@@ -132,7 +132,7 @@
             '<a class="text-link" href="#lineup">' + esc(u.seeAll) + "</a>" +
           "</div>" +
         "</div>" +
-        '<div class="hero-art"><img class="mascot" src="assets/mascot.webp" alt="" width="280" height="280"></div>' +
+        '<div class="hero-art"><img class="mascot" src="mascot.webp" alt="" width="280" height="280"></div>' +
       "</div>";
     var img = $(".mascot");
     if (img) {
