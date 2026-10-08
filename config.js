@@ -1,44 +1,47 @@
 /* ============================================================
-   config.js — всё, что Кристина меняет без правки вёрстки:
-   цены, ссылки Kaspi, ID пикселя, номер WhatsApp.
-   Тексты лежат отдельно, в content.json.
+   config.js — всё, что меняется без правки вёрстки:
+   контакты, Pixel ID, цены. Тексты лежат отдельно, в content.json.
+   Оплаты на сайте нет: кнопки «Записаться» ведут в Telegram-бот и WhatsApp.
    ============================================================ */
 window.SPRINTO_CONFIG = {
-  siteUrl: "https://start.sprinto.kz",
+  siteUrl: "https://sprinto-landing.onrender.com",
   defaultLang: "ru",                 // "ru" или "kz"; ссылка с ?lang=kz открывает казахскую версию
 
   /* --- Аналитика --- */
-  metaPixelId: "",                   // TODO: Pixel ID от Кристины (только цифры)
-  yandexMetrikaId: "",               // TODO: номер счётчика Яндекс Метрики (необязательно)
+  metaPixelId: "1081506154498239",                   // Pixel ID (только цифры)
+  yandexMetrikaId: "",               // номер счётчика Яндекс Метрики (необязательно)
 
-  /* --- Контакты --- */
-  whatsapp: "77000000000",           // TODO: номер WhatsApp без «+», например 77011234567
-  telegramBotUrl: "https://t.me/",   // TODO: ссылка на Telegram-бот для страницы «Спасибо»
-  policyUrl: "#",                    // TODO: ссылка на политику конфиденциальности
-  offerUrl: "#",                     // TODO: ссылка на оферту
+  /* --- Контакты: куда ведут кнопки --- */
+  telegramBotUrl: "https://t.me/sprinto_mvp_bot",                // ссылка на Telegram-бот, например https://t.me/имя_бота. Пока пусто — кнопки Telegram нет, основной остаётся WhatsApp
+  whatsappUrl: "https://wa.me/message/UEWBCFRJ7CKVF1",  // ссылка-сообщение WhatsApp Business
+  telegramStartParam: false,         // true — ссылка на бот получает /start <продукт> (marathon, challenge, intensive_two_months…), чтобы бот знал, какую кнопку нажали
+  whatsappPrefill: false,            // true — добавлять к ссылке текст «Хочу записаться: …» (проверьте, что WhatsApp его принимает)
+  whatsapp: "",                      // запасной вариант: номер без «+», например 77011234567 (используется, если whatsappUrl пустой)
 
-  /* --- Оплата ---
-     Если ссылка Kaspi пустая, кнопка «Оплатить» ведёт в WhatsApp
-     с текстом «Хочу оплатить …» — страница не ломается, пока ссылок нет. */
-  appendUtmToKaspi: false,           // true — добавлять utm и product к ссылке Kaspi (включить, только если Kaspi их принимает)
+  /* --- Документы (необязательно: пустая ссылка или "#" скрывает пункт в подвале) --- */
+  policyUrl: "",
+  offerUrl: "",
 
+  /* --- Цены и ссылки на оплату ---
+     payUrl — ссылка на оплату этого продукта (необязательно). Если она заполнена, у продукта появляется
+     основная кнопка «Оплатить», а Telegram и WhatsApp остаются ссылками под ней. Пустая ссылка — кнопки «Записаться». */
   products: {
-    challenge:    { price: 7000,  kaspi: "" },
-    marathon:     { price: 10000, kaspi: "" },
-    app_a2:       { price: 10000, kaspi: "" },
+    challenge:    { price: 7000,  payUrl: "" },
+    marathon:     { price: 10000, payUrl: "" },
+    app_a2:       { price: 10000, payUrl: "" },
     intensive: {
       variants: {
-        standard:   { price: 35000, kaspi: "" },   // стандартный доступ
-        two_months: { price: 40000, kaspi: "" }    // доступ на 2 месяца
+        standard:   { price: 35000, payUrl: "" },   // стандартный доступ
+        two_months: { price: 40000, payUrl: "" }    // доступ на 2 месяца
       }
     },
-    individual:   { price: 10000, per: "hour", kaspi: "" },   // за час
-    group_online: { price: 6500,  per: "hour", kaspi: "" },   // за час
-    songs:        { price: 12000, kaspi: "" }
+    individual:   { price: 10000, per: "hour", payUrl: "" },   // за час
+    group_online: { price: 6500,  per: "hour", payUrl: "" },   // за час
+    songs:        { price: 12000, payUrl: "" }
   },
 
   /* --- Демо Carlos ---
-     video — путь к mp4 (например "assets/demo.mp4"), poster — картинка-обложка.
+     video — путь к mp4 (например "demo.mp4"), poster — картинка-обложка.
      Если video пустой, показывается пример диалога из content.json. */
   demo: { video: "", poster: "" }
 };

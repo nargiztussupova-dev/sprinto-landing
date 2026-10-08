@@ -27,13 +27,16 @@
     chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H10l-4 4v-4H4z"/></svg>',
     globe: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>',
     clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-    card: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h4"/></svg>'
+    card: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h4"/></svg>',
+    user: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1-4 4-6 8-6s7 2 8 6"/></svg>',
+    check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>'
   };
 
   /* ---------- утилиты ---------- */
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
   function L() { return CONTENT[state.lang]; }
+  function langs() { return ["ru", "kz"].filter(function (l) { return CONTENT[l]; }); }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -58,12 +61,12 @@
 
   function priceInfo(pid) {
     var p = CFG.products && CFG.products[pid];
-    if (!p) return { price: 0, kaspi: "", per: null };
+    if (!p) return { price: 0, per: null };
     if (p.variants) {
       var v = p.variants[state.variant] || p.variants.standard;
-      return { price: v.price, kaspi: v.kaspi, per: p.per || null };
+      return { price: v.price, per: p.per || null };
     }
-    return { price: p.price, kaspi: p.kaspi, per: p.per || null };
+    return { price: p.price, per: p.per || null };
   }
   function priceText(pid) {
     return String(priceInfo(pid).price).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0") + "\u00A0₸";
@@ -72,19 +75,53 @@
     return priceInfo(pid).per === "hour" ? ' <small>' + esc(L().ui.perHour) + "</small>" : "";
   }
   function waLink(text) {
+    var u = CFG.whatsappUrl;
+    if (u) { // ссылка-сообщение WhatsApp Business (wa.me/message/…): текст подставляем только если включено whatsappPrefill
+      return CFG.whatsappPrefill ? u + (u.indexOf("?") > -1 ? "&" : "?") + "text=" + encodeURIComponent(text) : u;
+    }
     return "https://wa.me/" + encodeURIComponent(CFG.whatsapp || "") + "?text=" + encodeURIComponent(text);
   }
-  function payHref(pid) {
-    var info = priceInfo(pid);
-    if (!info.kaspi) return waLink(fill(L().ui.waPayText, { product: productName(pid) }));
-    if (CFG.appendUtmToKaspi) return T.withUtm(info.kaspi, { product: pid });
-    return info.kaspi;
+  function hasTelegram() {
+    return /^https?:\/\/(t\.me|telegram\.me)\/[A-Za-z0-9_+]{3,}/.test(CFG.telegramBotUrl || "");
   }
 
+  function productLabel(pid) {
+    var n = productName(pid);
+    if (pid === "intensive") n += " (" + (state.variant === "two_months" ? L().ui.variantTwoMonths : L().ui.variantStandard) + ")";
+    return n;
+  }
+  function waHref(pid) { return waLink(fill(L().ui.waPayText, { product: productLabel(pid) })); }
+
+  function tgHref(pid) {
+    var u = CFG.telegramBotUrl || "";
+    if (CFG.telegramStartParam) { // бот получит /start <продукт>, например /start marathon или /start intensive_two_months
+      var payload = pid + (pid === "intensive" ? "_" + state.variant : "");
+      return u + (u.indexOf("?") > -1 ? "&" : "?") + "start=" + encodeURIComponent(payload);
+    }
+    return u;
+  }
+  function payUrl(pid) {
+    var p = CFG.products && CFG.products[pid];
+    if (!p) return "";
+    if (p.variants) { var v = p.variants[state.variant] || p.variants.standard; return v.payUrl || ""; }
+    return p.payUrl || "";
+  }
+  function ctaHref(kind, pid) {
+    if (kind === "pay") return payUrl(pid);
+    if (kind === "telegram") return tgHref(pid);
+    return waHref(pid);
+  }
+
+  /* Кнопки у продукта. По приоритету: «Оплатить» (если задана ссылка payUrl), Telegram-бот (если есть настоящая ссылка), WhatsApp.
+     Первая из доступных — основная кнопка, остальные — ссылки под ней. */
   function payButtons(pid) {
-    var name = productName(pid);
-    return '<a class="btn btn-primary" href="' + esc(payHref(pid)) + '" target="_blank" rel="noopener" data-pay="' + pid + '">' + esc(L().ui.pay) + "</a>" +
-      '<a class="wa-pay" href="' + esc(waLink(fill(L().ui.waPayText, { product: name }))) + '" target="_blank" rel="noopener" data-pay-wa="' + pid + '">' + esc(L().ui.payWa) + "</a>";
+    var u = L().ui, items = [];
+    if (payUrl(pid)) items.push({ kind: "pay", label: u.payNow });
+    if (hasTelegram()) items.push({ kind: "telegram", label: u.pay });
+    items.push({ kind: "whatsapp", label: u.payWa });
+    return items.map(function (it, i) {
+      return '<a class="' + (i === 0 ? "btn btn-primary" : "wa-pay") + '" href="' + esc(ctaHref(it.kind, pid)) + '" target="_blank" rel="noopener" data-cta="' + it.kind + '" data-pid="' + pid + '">' + esc(it.label) + "</a>";
+    }).join("");
   }
 
   function variantToggle(pid) {
@@ -100,7 +137,7 @@
   /* обновляет цены, ссылки и переключатели без перерисовки страницы */
   function updatePrices() {
     $all("[data-price]").forEach(function (el) { el.textContent = priceText(el.getAttribute("data-price")); });
-    $all("[data-pay]").forEach(function (a) { a.setAttribute("href", payHref(a.getAttribute("data-pay"))); });
+    $all("[data-actions]").forEach(function (box) { box.innerHTML = payButtons(box.getAttribute("data-actions")); });
     $all("[data-action='variant']").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.getAttribute("data-variant") === state.variant));
     });
@@ -112,6 +149,7 @@
       b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === state.lang));
     });
     $("#lang-switch").setAttribute("aria-label", L().ui.langLabel);
+    $("#lang-switch").hidden = langs().length < 2;
     $("#skip-link").textContent = L().ui.skip;
     $("#sticky-btn").textContent = L().ui.pickCourse;
     document.title = L().meta.title;
@@ -172,7 +210,7 @@
         '<p class="result-short">' + esc(pr.short) + "</p>" +
         '<div style="margin-top:14px;max-width:360px">' + variantToggle(pid) + "</div>" +
         '<p class="result-price"><span data-price="' + pid + '">' + esc(priceText(pid)) + "</span>" + perHtml(pid) + "</p>" +
-        '<div class="result-actions">' + payButtons(pid) + "</div>" +
+        '<div class="result-actions" data-actions="' + pid + '">' + payButtons(pid) + "</div>" +
         '<div class="result-links">' +
           '<button type="button" class="text-link" data-action="back">← ' + esc(u.back) + "</button>" +
           '<button type="button" class="text-link" data-action="golineup">' + esc(u.seeOthers) + "</button>" +
@@ -223,7 +261,7 @@
       '<p class="card-short">' + esc(p.short) + "</p>" +
       '<div class="card-full" id="more-' + pid + '"' + (open ? "" : " hidden") + "><p>" + esc(p.full) + "</p></div>" +
       '<button type="button" class="text-link" data-action="more" data-pid="' + pid + '" aria-expanded="' + open + '" aria-controls="more-' + pid + '">' + esc(open ? u.less : u.more) + "</button>" +
-      '<div class="card-actions">' + payButtons(pid) + "</div>" +
+      '<div class="card-actions" data-actions="' + pid + '">' + payButtons(pid) + "</div>" +
       "</article>";
   }
 
@@ -233,7 +271,7 @@
       var p = L().products[pid];
       return '<div class="other-row"><h3>' + esc(p.name) + "</h3><p>" + esc(p.short) + "</p>" +
         '<p class="price"><span data-price="' + pid + '">' + esc(priceText(pid)) + "</span>" + perHtml(pid) + "</p>" +
-        '<div class="card-actions">' + payButtons(pid) + "</div></div>";
+        '<div class="card-actions" data-actions="' + pid + '">' + payButtons(pid) + "</div></div>";
     }).join("");
     $("#lineup").innerHTML =
       '<div class="wrap">' +
@@ -296,10 +334,14 @@
   }
 
   function renderFooter() {
-    var f = L().footer;
-    $("#footer").innerHTML =
-      "<p>" + esc(f.requisites) + "</p>" +
-      '<p><a href="' + esc(CFG.policyUrl || "#") + '">' + esc(f.policy) + '</a><a href="' + esc(CFG.offerUrl || "#") + '">' + esc(f.offer) + "</a></p>";
+    var f = L().footer, html = "";
+    function real(u) { return u && u !== "#"; }
+    if (f.requisites) html += "<p>" + esc(f.requisites) + "</p>";
+    var links = "";
+    if (real(CFG.policyUrl)) links += '<a href="' + esc(CFG.policyUrl) + '">' + esc(f.policy) + "</a>";
+    if (real(CFG.offerUrl)) links += '<a href="' + esc(CFG.offerUrl) + '">' + esc(f.offer) + "</a>";
+    if (links) html += "<p>" + links + "</p>";
+    $("#footer").innerHTML = html;
   }
 
   function renderAll() {
@@ -319,18 +361,18 @@
 
   /* ---------- язык ---------- */
   function setLang(l) {
-    if (l !== "ru" && l !== "kz") return;
+    if (langs().indexOf(l) < 0) return;
     state.lang = l;
     store("sprinto_lang", l);
     renderAll();
   }
   function pickInitialLang() {
-    var fromUrl = null;
+    var ok = langs(), fromUrl = null;
     try { fromUrl = new URLSearchParams(window.location.search).get("lang"); } catch (e) {}
-    if (fromUrl === "kz" || fromUrl === "ru") return fromUrl;
+    if (fromUrl && ok.indexOf(fromUrl) > -1) return fromUrl;
     var saved = readStore("sprinto_lang");
-    if (saved === "kz" || saved === "ru") return saved;
-    return CFG.defaultLang === "kz" ? "kz" : "ru";
+    if (saved && ok.indexOf(saved) > -1) return saved;
+    return ok.indexOf(CFG.defaultLang) > -1 ? CFG.defaultLang : ok[0];
   }
 
   /* ---------- квиз ---------- */
@@ -368,7 +410,7 @@
     state.result = Q.recommend(a);
     var pid = state.result.product;
     var info = priceInfo(pid);
-    T.track("Lead", {
+    T.track("QuizComplete", {
       content_name: canonName(pid),
       content_category: "quiz",
       recommended_product: pid,
@@ -387,25 +429,19 @@
 
   /* ---------- действия ---------- */
   function onClick(e) {
-    var pay = e.target.closest && e.target.closest("[data-pay]");
-    if (pay) {
-      var pid = pay.getAttribute("data-pay");
-      var info = priceInfo(pid);
-      var co = {
-        content_name: canonName(pid), content_ids: [pid], content_type: "product",
-        value: info.price, currency: "KZT"
+    var cta = e.target.closest && e.target.closest("[data-cta]");
+    if (cta) {
+      var cpid = cta.getAttribute("data-pid"), kind = cta.getAttribute("data-cta");
+      var ev = {
+        content_name: canonName(cpid), content_ids: [cpid], content_type: "product", method: kind
       };
-      if (pid === "intensive") co.variant = state.variant;
-      T.track("InitiateCheckout", co);
-      return;
-    }
-    var payWa = e.target.closest && e.target.closest("[data-pay-wa]");
-    if (payWa) {
-      T.track("Contact", { content_name: canonName(payWa.getAttribute("data-pay-wa")), method: "whatsapp_pay" });
+      if (cpid === "intensive") ev.variant = state.variant;
+      if (kind === "pay") { ev.value = priceInfo(cpid).price; ev.currency = "KZT"; T.track("InitiateCheckout", ev); }
+      else T.track("Lead", ev);
       return;
     }
     var wa = e.target.closest && e.target.closest("[data-wa]");
-    if (wa) { T.track("Contact", { method: "whatsapp", placement: wa.getAttribute("data-wa") }); return; }
+    if (wa) { T.track("Lead", { method: "whatsapp", placement: wa.getAttribute("data-wa") }); return; }
 
     var el = e.target.closest && e.target.closest("[data-action]");
     if (!el) return;

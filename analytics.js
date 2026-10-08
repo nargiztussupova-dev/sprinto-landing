@@ -67,10 +67,12 @@
     return out;
   }
 
-  /* track — стандартное событие Meta + цель Метрики с тем же именем */
+  var STANDARD = { PageView: 1, ViewContent: 1, Lead: 1, Contact: 1, InitiateCheckout: 1, Purchase: 1, CompleteRegistration: 1, Schedule: 1 };
+
+  /* track — событие Meta (стандартное или своё) + цель Метрики с тем же именем */
   function track(name, params) {
     var data = merge(params || {}, getUtm());
-    try { if (window.fbq && C.metaPixelId) window.fbq("track", name, data); } catch (e) {}
+    try { if (window.fbq && C.metaPixelId) window.fbq(STANDARD[name] ? "track" : "trackCustom", name, data); } catch (e) {}
     try { if (window.ym && C.yandexMetrikaId) window.ym(Number(C.yandexMetrikaId), "reachGoal", name, data); } catch (e) {}
   }
   /* goal — только Метрика: шаги квиза, чтобы видеть, где бросают */

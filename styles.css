@@ -16,6 +16,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -83,7 +84,7 @@ a { color: var(--ink); }
   text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
   display: inline-flex; align-items: center; min-height: 44px;
 }
-.wa-pay { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--ink-soft); }
+.wa-pay { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 700; color: var(--ink); text-underline-offset: 3px; }
 
 /* ---------- Первый экран ---------- */
 .hero { padding-top: 24px; }
@@ -213,13 +214,13 @@ a { color: var(--ink); }
 /* ---------- Отзывы ---------- */
 .reviews-row {
   display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
-  padding: 4px 20px 16px; margin: 24px -20px 0; -webkit-overflow-scrolling: touch;
+  padding: 4px 20px 16px; margin: 24px -20px 0; scroll-padding: 0 20px; -webkit-overflow-scrolling: touch;
 }
 .review {
   flex: 0 0 82%; max-width: 340px; scroll-snap-align: start; margin: 0;
   background: var(--card); border: var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 12px; align-content: start;
 }
-.review blockquote { margin: 0; font-weight: 600; }
+.review blockquote { margin: 0; font-weight: 500; }
 .review figcaption { font-weight: 800; font-size: 14px; }
 
 /* ---------- FAQ ---------- */
